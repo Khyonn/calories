@@ -1,15 +1,26 @@
 import { createMemo, createSignal, type Component } from "solid-js";
 
-const calculateurs = {
-  feminine: (poids: number, taille: number, age: number) => 655 + 9.6 * poids + 1.8 * taille - 4.7 * age,
-  masculine: (poids: number, taille: number, age: number) => 66 + 13.7 * poids + 5 * taille - 6.5 * age,
-};
-const controlGroupClass = "flex gap-4";
+
+const blackBase = (poids: number, taille: number, age: number) =>
+  Math.pow(poids, 0.48) * Math.pow(taille / 100, 0.5) * Math.pow(age, -0.13);
+const formules = {
+  harrisAndBenedict: {
+    feminine: (poids: number, taille: number, age: number) => 667.051 + 9.74 * poids + 1.729 * taille - 4.737 * age,
+    masculine: (poids: number, taille: number, age: number) => 77.607 + 13.707 * poids + 4.923 * taille - 6.673 * age,
+  },
+  black: {
+    feminine: (poids: number, taille: number, age: number) => 230 * blackBase(poids, taille, age),
+    masculine: (poids: number, taille: number, age: number) => 259 * blackBase(poids, taille, age),
+  }
+}
+const formule = formules.harrisAndBenedict;
+
+const controlGroupClass = "flex gap-4 flex-wrap";
 const controlClass = "grow grid gap-2";
-const inputClass = "text-black rounded p-2 border dark:border-transparent";
+const inputClass = "w-full text-black rounded p-2 border dark:border-transparent";
 
 const App: Component = () => {
-  const [calc, setCalc] = createSignal(calculateurs.feminine);
+  const [calc, setCalc] = createSignal(formule.feminine);
   const [multiplicateur, setMultiplicateur] = createSignal(1.2);
   const [variables, setVariables] = createSignal<{ taille: number; poids: number; age: number }>({
     taille: NaN,
@@ -28,10 +39,10 @@ const App: Component = () => {
   });
 
   return (
-    <div class="flex justify-center items-center w-screen h-screen bg-neutral-200 dark:bg-neutral-800 dark:text-white text-lg">
-      <div class="grid gap-8 shadow-md p-4 bg-white dark:bg-neutral-700 rounded-lg">
+    <div class="flex justify-center items-center w-screen h-screen">
+      <div class="container grid gap-8 shadow-md p-4 bg-white dark:bg-neutral-700 rounded-lg">
         <h1 class="text-2xl font-medium">Calcul de la dépense énergétique du corps</h1>
-        <form class="grid gap-6">
+        <form class="grid gap-8">
           <div class={controlGroupClass}>
             <div class={controlClass}>
               <label for="physiologie">Physiologie</label>
@@ -40,7 +51,7 @@ const App: Component = () => {
                 id="physiologie"
                 class={inputClass}
                 onChange={(event) => {
-                  setCalc(() => calculateurs[event.target.value as keyof ReturnType<typeof calc>]);
+                  setCalc(() => formule[event.target.value as keyof ReturnType<typeof calc>]);
                 }}
               >
                 <option value="feminine" selected>
